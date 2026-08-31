@@ -139,3 +139,122 @@ ON p1.country_code = p2.country_code
 WHERE p1.year = 2010
 -- Filter such that p1.year is always five years before p2.year
     AND p1.year = p2.year -5;
+
+-- Exercise 14: uses of union
+-- Select all fields from economies2015
+SELECT *
+FROM economies2015    
+-- Set operation
+UNION
+-- Select all fields from economies2019
+SELECT *
+FROM economies2019
+ORDER BY code, year;
+
+--Exercise 15: uses of Intersect
+SELECT name 
+FROM cities
+INTERSECT
+SELECT name
+FROM countries;
+
+-- Exercise 16: Uses of Except
+-- Return all cities that do not have the same name as a country
+SELECT name
+FROM cities
+EXCEPT
+SELECT name
+FROM countries
+ORDER BY name;
+
+-- Exercise 17: Subquery inside WHERE part 1 (Semi Join)
+SELECT DISTINCT name
+FROM languages
+-- Add syntax to use bracketed subquery below as a filter
+WHERE code IN
+    (SELECT code
+    FROM countries
+    WHERE region = 'Middle East')
+ORDER BY name;
+
+-- Exercise 18: Subquery inside WHERE part 2 (Anti Join)
+SELECT code, name
+FROM countries
+WHERE continent = 'Oceania'
+-- Filter for countries not included in the bracketed subquery
+  AND code NOT IN
+    (SELECT code
+    FROM currencies);
+
+-- Exercise 19: Subquery inside WHERE part 3
+SELECT *
+FROM populations
+WHERE year = 2015
+-- Filter for only those populations where life expectancy is 1.15 times higher than average
+  AND life_expectancy >  1.15 *
+  (SELECT AVG(life_expectancy)
+   FROM populations
+   WHERE year = 2015);
+
+-- Exercise 20: Subquery inside SELECT part 1
+SELECT countries.name AS country, COUNT(*) AS cities_num
+FROM countries
+LEFT JOIN cities
+ON countries.code = cities.country_code 
+-- Order by count of cities as cities_num
+GROUP BY country
+ORDER BY cities_num DESC, country ASC
+-- Limit the results
+LIMIT 9;
+
+-- Exercise 21: Subquery inside SELECT part 2
+SELECT countries.name AS country,
+-- Subquery that provides the count of cities   
+  (SELECT COUNT(*)
+  FROM cities
+  WHERE cities.country_code = countries.code) AS cities_num
+FROM countries
+ORDER BY cities_num DESC, country
+LIMIT 9;
+
+-- Exercise 22: Subquery inside FROM
+-- Select local_name and lang_num from appropriate tables
+SELECT local_name, sub.lang_num
+FROM countries,
+  (SELECT code, COUNT(*) AS lang_num
+  FROM languages
+  GROUP BY code) AS sub
+-- Where codes match
+WHERE countries.code = sub.code
+ORDER BY lang_num DESC;
+
+-- Exercise 23: Subquery challenge 
+-- Select relevant fields
+SELECT code, inflation_rate, unemployment_rate
+FROM economies
+WHERE year = 2015 
+  AND code IN
+-- Subquery returning country codes filtered on gov_form
+    (SELECT code
+    FROM countries
+    WHERE gov_form LIKE '%Republic%' OR gov_form LIKE '%Monarchy%')
+ORDER BY inflation_rate;
+
+-- Exercise 24: Final challenge
+-- Select fields from cities
+SELECT name, country_code,city_proper_pop, metroarea_pop, city_proper_pop / metroarea_pop * 100 AS city_perc 
+FROM cities
+WHERE name IN
+-- Use subquery to filter city name
+    (SELECT capital
+    FROM countries
+    WHERE continent LIKE '%Europe%' OR continent LIKE '%America%')
+-- Add filter condition such that metroarea_pop does not have null values
+AND metroarea_pop IS NOT NULL 
+ORDER BY city_perc DESC
+-- Sort and limit the result
+LIMIT 10;
+
+
+
+
