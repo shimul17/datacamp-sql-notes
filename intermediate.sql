@@ -280,7 +280,7 @@ GROUP BY release_year;
 -- 48:
 SELECT release_year, AVG(budget) AS avg_budget, AVG(gross) AS avg_gross
 FROM films
-WHERE release_year > 1990
+WHERE release_year < 1990
 GROUP BY release_year;
 
 -- 49:
